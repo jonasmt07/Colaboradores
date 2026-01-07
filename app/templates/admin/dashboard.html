@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-bold text-slate-900">Gerenciar Colaboradores</h1>
+        
+        <div class="flex gap-2">
+            <div class="relative">
+                <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="Filtrar tabela..." 
+                       class="pl-10 pr-4 py-2 border border-slate-200 rounded-xl w-64 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-400 absolute left-3 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+            </div>
+
+            <button onclick="openModal('add', null, this)"
+            data-add-url="{{ url_for('admin.add_employee') }}"
+             class="bg-indigo-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-indigo-700 shadow-md transition-all flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+                Novo
+            </button>
+        </div>
+    </div>
+
+    <div class="bg-white shadow-sm rounded-2xl overflow-hidden border border-slate-200">
+        <table class="min-w-full divide-y divide-slate-200" id="employeeTable">
+            <thead class="bg-slate-50">
+                <tr>
+                    <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Colaborador</th>
+                    <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Unidade</th>
+                    <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Ramal / Email</th>
+                    <th class="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Ações</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 bg-white">
+                {% for emp in employees %}
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-10 w-10">
+                                {% set avatar_url = 'https://ui-avatars.com/api/?name=' + emp.nome %}
+                                {% if emp.foto_url %}
+                                    {% if 'http' in emp.foto_url %}
+                                        {% set avatar_url = emp.foto_url %}
+                                    {% else %}
+                                        {% set avatar_url = url_for('static', filename='img/fotos/' + emp.foto_url) %}
+                                    {% endif %}
+                                {% endif %}
+                                
+                                <img class="h-10 w-10 rounded-full object-cover" 
+                                     src="{{ avatar_url }}" 
+                                     alt="{{ emp.nome }}"
+                                     onerror="this.src='https://ui-avatars.com/api/?name={{ emp.nome }}'">
+                            </div>
+                            <div class="ml-4">
+                                <div class="text-sm font-bold text-slate-900">{{ emp.nome }}</div>
+                                <div class="text-sm text-slate-500">{{ emp.cargo }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {% if emp.unidade %}
+                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">
+                            {{ emp.unidade }}
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
+                        <div class="flex flex-col">
+                            <span>{{ emp.ramal or '--' }}</span>
+                            <span class="text-xs text-slate-400">{{ emp.email or '' }}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div class="flex justify-end gap-3">
+                            <button type="button"
+                                    data-json='{{ emp.to_dict()|tojson }}'
+                                    onclick="handleEdit(this)"
+                                    class="text-indigo-600 hover:text-indigo-900 font-bold transition-colors">
+                                Editar
+                            </button>
+                            
+                            <form action="{{ url_for('admin.delete_employee', id=emp.id) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir este colaborador?');" class="inline">
+                                <button type="submit" class="text-red-500 hover:text-red-700 font-bold transition-colors">
+                                    Excluir
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="modalForm" class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+    <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden transform transition-all scale-100">
+        
+        <form id="employeeForm" method="POST" enctype="multipart/form-data" class="flex flex-col h-full">
+            
+            <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <h3 class="text-lg font-bold text-slate-800" id="modalTitle">Novo Colaborador</h3>
+                <button type="button" onclick="closeModal()" class="text-slate-400 hover:text-slate-600 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+            
+            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="col-span-2">
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nome Completo</label>
+                    <input type="text" name="nome" id="f_nome" required class="w-full border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
+                </div>
+                
+                <div class="col-span-2 md:col-span-1">
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Cargo</label>
+                    <input type="text" name="cargo" id="f_cargo" class="w-full border-slate-200 rounded-xl p-2.5 outline-none focus:border-indigo-500">
+                </div>
+
+                <div class="col-span-2 md:col-span-1">
+                     <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Unidade (Sigla)</label>
+                     <input type="text" name="unidade" id="f_unidade" list="unitsList" class="w-full border-slate-200 rounded-xl p-2.5 outline-none focus:border-indigo-500 uppercase">
+                     <datalist id="unitsList">
+                        {% for u in all_units %}<option value="{{ u }}">{% endfor %}
+                     </datalist>
+                </div>
+
+                <div class="col-span-2">
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nome da Unidade (Extenso)</label>
+                    <input type="text" name="nome_unidade" id="f_nome_unidade" class="w-full border-slate-200 rounded-xl p-2.5 outline-none focus:border-indigo-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Email</label>
+                    <input type="email" name="email" id="f_email" class="w-full border-slate-200 rounded-xl p-2.5 outline-none focus:border-indigo-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Ramal</label>
+                    <input type="text" name="ramal" id="f_ramal" class="w-full border-slate-200 rounded-xl p-2.5 outline-none focus:border-indigo-500">
+                </div>
+
+                <div class="col-span-2">
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Foto de Perfil</label>
+                    
+                    <p id="currentPhotoText" class="text-xs text-indigo-600 mb-2 hidden">
+                        Foto atual: <span id="f_foto_nome" class="font-mono font-bold"></span>
+                    </p>
+
+                    <input type="file" name="foto" id="f_foto" accept="image/*"
+                           class="block w-full text-sm text-slate-500
+                                  file:mr-4 file:py-2 file:px-4
+                                  file:rounded-full file:border-0
+                                  file:text-sm file:font-semibold
+                                  file:bg-indigo-50 file:text-indigo-700
+                                  hover:file:bg-indigo-100 cursor-pointer">
+                    <p class="text-[10px] text-slate-400 mt-1">Formatos: JPG, PNG. Deixe vazio para manter a atual.</p>
+                </div>
+            </div>
+
+            <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
+                <button type="button" onclick="closeModal()" class="px-5 py-2.5 border border-slate-300 text-slate-700 rounded-xl font-bold bg-white hover:bg-slate-50 transition-colors">Cancelar</button>
+                <button type="submit" class="px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 shadow-md transition-colors">Salvar Alterações</button>
+            </div>
+        </form>
+    </div>
+</div>
+</div>
+
+{% endblock %}

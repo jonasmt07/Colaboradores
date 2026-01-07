@@ -1,0 +1,31 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+
+# --- Ambientes Virtuais (Venv) ---
+venv/
+.venv/
+env/
+
+# --- Variáveis de Ambiente e Segredos ---
+.env
+.flaskenv
+
+# --- Banco de Dados SQLite ---
+# Ignoramos o banco para não sobrescrever dados de produção com dados locais
+*.db
+*.sqlite3
+instance/database.db
+
+# --- Logs ---
+*.log
+app/logs/
+
+# --- IDEs e Editores ---
+.vscode/
+.idea/
+*.swp
+
+# --- MacOS (Lixo do sistema) ---
+.DS_Store
