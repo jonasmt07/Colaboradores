@@ -1,4 +1,4 @@
-Sistema web desenvolvido em Python/Flask para gerenciamento de colaboradores, unidades e ramais. O projeto segue a arquitetura **Application Factory** com **Blueprints** para modularidade e escalabilidade.
+#Sistema web desenvolvido em Python/Flask para gerenciamento de colaboradores, unidades e ramais. O projeto segue a arquitetura **Application Factory** com **Blueprints** para modularidade e escalabilidade.
 
 ## 🚀 Tecnologias Utilizadas
 
