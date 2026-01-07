@@ -1,7 +1,4 @@
-<<<<<<< HEAD
-# Sistema de Gestão de Colaboradores (RH)
-
-Sistema web desenvolvido em Python/Flask para gerenciamento de colaboradores, unidades e ramais. O projeto segue a arquitetura **Application Factory** com **Blueprints** para modularidade e escalabilidade.
+# Sistema web desenvolvido em Python/Flask para gerenciamento de colaboradores, unidades e ramais. O projeto segue a arquitetura **Application Factory** com **Blueprints** para modularidade e escalabilidade.
 
 ## 🚀 Tecnologias Utilizadas
 
@@ -57,6 +54,3 @@ Execute a aplicação:
 Bash
 
 python run.py
-=======
-# Colaboradores
->>>>>>> 6596a2580b2f1fac3b569c1d2cd9ab6fae6943b4
