@@ -30,7 +30,8 @@ O projeto foi refatorado para seguir as melhores práticas de desenvolvimento we
 Pré-requisitos
 Python 3 instalado.
 
-Passo a Passo
+
+
 Clone o repositório ou baixe o código.
 
 Crie e ative um ambiente virtual:
